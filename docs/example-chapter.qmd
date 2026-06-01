@@ -1,0 +1,124 @@
+---
+title: "The Evertum Hypothesis"
+subtitle: "A Worked Example of the Quarto + LaTeX Authoring Format"
+author: "Keldon"
+date: 2026-06-01
+# In the real book these settings live in shared _quarto.yml / metadata.yml.
+# Quarto's crossref defaults are sensible; shown here only to illustrate
+# how you would customize them. (Chapter-based numbering like "Equation 3.2"
+# is enabled at the book level via `crossref: chapters: true`.)
+crossref:
+  sec-prefix: "§"        # default would be "Section"
+link-citations: true
+bibliography: references.bib
+---
+
+# Foundations {#sec-foundations}
+
+This file is a *demonstration* of the agreed source format: plain Quarto
+(Pandoc-flavored) Markdown for prose, LaTeX for the mathematics, stable explicit
+IDs for cross-references, native theorem environments, and a raw-LaTeX "escape
+hatch" for the few things Markdown cannot express. Everything below compiles to
+HTML, PDF (via LaTeX), and EPUB from the *same* source.
+
+Notice how readable the raw text stays — that is what keeps iteration fast,
+diffs clean, and token usage low.
+
+## Notation {#sec-notation}
+
+We write the spacetime metric as $g_{\mu\nu}$, the scale factor as $a(t)$, and
+use natural units where $c = \hbar = 1$ unless stated otherwise. Inline math is
+just `$...$`: the Hubble parameter is $H \equiv \dot{a}/a$.
+
+## The Governing Equation {#sec-governing}
+
+The central relation of the model is the modified Friedmann equation:
+
+$$
+H^2 = \frac{8\pi G}{3}\,\rho \;+\; \frac{\Lambda_{\text{ev}}}{3}
+       \;-\; \frac{k}{a^2}
+$$ {#eq-friedmann}
+
+Here $\rho$ is the energy density and $\Lambda_{\text{ev}}$ is the *evertum
+term* introduced in @sec-foundations. Multi-line, aligned derivations use a
+LaTeX `aligned` block, which Markdown alone cannot do cleanly:
+
+$$
+\begin{aligned}
+\dot{\rho} + 3H(\rho + p) &= -\dot{\Lambda}_{\text{ev}} \\
+                          &= -\,\gamma\, H\, \Lambda_{\text{ev}}
+\end{aligned}
+$$ {#eq-continuity}
+
+Combining @eq-friedmann and @eq-continuity gives the result we rely on
+throughout the rest of the book. Note that the reference numbers above update
+*automatically* if you insert another equation earlier — you never renumber by
+hand.
+
+# Theorems and the LaTeX Escape Hatch {#sec-theorems}
+
+Quarto has **native** theorem environments: a fenced div whose ID starts with
+`thm-`, with the theorem's name given by a heading inside it. These auto-number
+and render correctly in *both* HTML and PDF, so they are preferred over raw
+LaTeX:
+
+::: {#thm-conservation}
+## Evertum Conservation
+
+For any closed region $\Omega$ with boundary $\partial\Omega$, the evertum flux
+satisfies
+
+$$
+\oint_{\partial\Omega} J^\mu \, dS_\mu = 0 .
+$$
+:::
+
+You then reference it in prose as @thm-conservation, which renders as
+"Theorem 1 (Evertum Conservation)" — portable across formats, no raw LaTeX
+required.
+
+For the genuinely LaTeX-only cases Quarto has no syntax for (custom TikZ
+diagrams, bespoke environments), drop into a raw `` ```{=latex} `` block. It is
+passed straight through to the PDF and ignored by non-LaTeX outputs, so pair it
+with an HTML fallback when a web reader also needs to see something:
+
+```{=latex}
+% PDF-only: reaches LaTeX untouched, bypassing Markdown entirely.
+\begin{quote}\itshape
+  Raw LaTeX here is emitted verbatim into the PDF.
+\end{quote}
+```
+
+# Figures, Tables, and Citations {#sec-assets}
+
+Figures get a caption and a stable ID, so a reference like @fig-flux stays
+correct forever:
+
+![Schematic of evertum flux through a closed boundary.](figures/flux-diagram.png){#fig-flux width=70%}
+
+As illustrated in @fig-flux, the net flux vanishes. A table works the same way:
+
+| Symbol                | Meaning           | Units                  |
+|-----------------------|-------------------|------------------------|
+| $\Lambda_{\text{ev}}$ | Evertum term      | $[\text{length}]^{-2}$ |
+| $\gamma$              | Coupling constant | dimensionless          |
+
+: Key symbols used in this chapter. {#tbl-symbols}
+
+See @tbl-symbols for definitions. Citations use bracketed `@` keys and pull from
+a shared `.bib` file: the cosmological constant problem was framed by Weinberg
+[@weinberg1989].[^note]
+
+[^note]: Footnotes are first-class in Quarto Markdown — useful for asides
+without breaking the flow of the argument.
+
+# Cross-Chapter References {#sec-crossfile}
+
+In a Quarto **book**, cross-references resolve *globally across files* at build
+time. So even though (say) the entropy-bound discussion lives in a different
+chapter file, you reference its label directly in prose — e.g. `@sec-entropy`
+renders as a numbered, hyperlinked "§4.1" pointing at wherever that label is
+defined, with no manual file paths and no fragile heading-text anchors.
+
+(A plain Markdown link such as `[the appendix](appendix.qmd)` still works for
+ordinary, non-cross-reference links.)
